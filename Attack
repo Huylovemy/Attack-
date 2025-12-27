@@ -63,7 +63,7 @@ local ShootGunEvent = Net:WaitForChild("RE/ShootGunEvent")
 local GunValidator = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Validator2")
 
 local Config = {
-    AttackDistance = 65,
+    AttackDistance = 200,
     AttackMobs = true,
     AttackPlayers = true,
     AttackCooldown = 0.2,
@@ -84,9 +84,9 @@ function FastAttack.new()
         M1Combo = 0,
         EnemyRootPart = nil,
         Connections = {},
-        Overheat = {Dragonstorm}},
-        ShootsPerTarget = {["Dual Flintlock"]},
-        SpecialShoots = {["Skull Guitar"] = "TAP"}
+        Overheat = {Dragonstorm = {MaxOverheat = 3, Cooldown = 0, TotalOverheat = 0, Distance = 350, Shooting = false}},
+        ShootsPerTarget = {["Dual Flintlock"] = 2},
+        SpecialShoots = {["Skull Guitar"] = "TAP", ["Bazooka"] = "Position", ["Cannon"] = "Position", ["Dragonstorm"] = "Overheat"}
     }, FastAttack)
     
     pcall(function()
