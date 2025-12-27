@@ -84,7 +84,10 @@ function FastAttack.new()
         M1Combo = 0,
         EnemyRootPart = nil,
         Connections = {},
-        Overheat = {FastAttack}
+        Overheat = {Dragonstorm}},
+        ShootsPerTarget = {["Dual Flintlock"]},
+        SpecialShoots = {["Skull Guitar"] = "TAP"}
+    }, FastAttack)
     
     pcall(function()
         self.CombatFlags = require(Modules.Flags).COMBAT_REMOTE_THREAD
