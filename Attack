@@ -10,3 +10,49 @@ spawn(function()
         end
     end
 end);
+local v48 = v16.Main:AddDropdown("DropdownSelectWeapon", {
+    Title = "Select weapon",
+    Description = "",
+    Values = {
+        "Melee",
+        "Sword",
+        "Blox Fruits"
+    },
+    Multi = false,
+    Default = 1
+});
+v48:SetValue("Melee");
+v48:OnChanged(function(v236)
+    ChooseWeapon = v236;
+end);
+task.spawn(function()
+    while wait() do
+        pcall(function()
+            if (ChooseWeapon == "Melee") then
+                for v836, v837 in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                    if (v837.ToolTip == "Melee") then
+                        if game.Players.LocalPlayer.Backpack:FindFirstChild(tostring(v837.Name)) then
+                            SelectWeapon = v837.Name;
+                        end
+                    end
+                end
+            elseif (ChooseWeapon == "Sword") then
+                for v1028, v1029 in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                    if (v1029.ToolTip == "Sword") then
+                        if game.Players.LocalPlayer.Backpack:FindFirstChild(tostring(v1029.Name)) then
+                            SelectWeapon = v1029.Name;
+                        end
+                    end
+                end
+            elseif (ChooseWeapon == "Blox Fruit") then
+                for v1430, v1431 in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                    if (v1431.ToolTip == "Blox Fruit") then
+                        if game.Players.LocalPlayer.Backpack:FindFirstChild(tostring(v1431.Name)) then
+                            SelectWeapon = v1431.Name;
+                        end
+                    end
+                end
+            end
+        end);
+    end
+end);
