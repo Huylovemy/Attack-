@@ -1,343 +1,189 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/AnhDzaiScript/Setting/refs/heads/main/FastMax.lua"))()
-local function GetBladeHits()
-    local targets = {}
-    local function GetDistance(v)
-        return (v.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-    end
+if game.PlaceId == 2753915549 or game.PlaceId == 4442272183 or game.PlaceId == 7449423635 then
+    -- Blox Fruit game IDs
     
-    for _, part in pairs({game.Workspace.Enemies, game.Workspace.Characters}) do
-        for _, v in pairs(part:GetChildren()) do
-            if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Head") and v:FindFirstChild("Humanoid") then
-                if GetDistance(v.HumanoidRootPart) < 60 then
-                    table.insert(targets, v)
-                end
-            end
-        end
-    end
-
-    return targets
-end
-
-local function AttackAll()
-    local player = game.Players.LocalPlayer
-    local character = player.Character
-    if not character then return end
-
-    local equippedWeapon = character:FindFirstChild("EquippedWeapon")
-    if not equippedWeapon then return end
-
-
-    local enemies = GetBladeHits()
-    if #enemies > 0 then
-        local netModule = game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net")
-        netModule:WaitForChild("RE/RegisterAttack"):FireServer(-math.huge)
-        
-        local args = {nil, {}}
-        for i, v in pairs(enemies) do
-            if not args[1] then
-                args[1] = v.Head
-            end
-            args[2][i] = {v, v.HumanoidRootPart}
-        end
-        
-        netModule:WaitForChild("RE/RegisterHit"):FireServer(unpack(args))
-    end
-end
-
-spawn(function()
-    while task.wait() do AttackAll() end
-end)
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-
-local Player = Players.LocalPlayer
-local Modules = ReplicatedStorage:WaitForChild("Modules")
-local Net = Modules:WaitForChild("Net")
-local RegisterAttack = Net:WaitForChild("RE/RegisterAttack")
-local RegisterHit = Net:WaitForChild("RE/RegisterHit")
-local ShootGunEvent = Net:WaitForChild("RE/ShootGunEvent")
-local GunValidator = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Validator2")
-
-local Config = {
-    AttackDistance = 999999999999,
-    AttackMobs = true,
-    AttackPlayers = true,
-    AttackCooldown = 0.2,
-    ComboResetTime = 0.3,
-    MaxCombo = 9999999999999,
-    HitboxLimbs = {"RightLowerArm", "RightUpperArm", "LeftLowerArm", "LeftUpperArm", "RightHand", "LeftHand"},
-    AutoClickEnabled = true
-}
-
-local FastAttack = {}
-FastAttack.__index = FastAttack
-
-function FastAttack.new()
-    local self = setmetatable({
-        Debounce = 0,
-        ComboDebounce = 0,
-        ShootDebounce = 0,
-        M1Combo = 0,
-        EnemyRootPart = nil,
-        Connections = {},
-        Overheat = {Dragonstorm = {MaxOverheat = 0, Cooldown = 0, TotalOverheat = 0, Distance = 999999, Shooting = false}},
-        ShootsPerTarget = {["Dual Flintlock"] = 0},
-        SpecialShoots = {["Skull Guitar"] = "", ["Bazooka"] = "Position", ["Cannon"] = "Position", ["Dragonstorm"] = "Overheat"}
-    }, FastAttack)
+    local Player = game:GetService("Players").LocalPlayer
+    local Mouse = Player:GetMouse()
+    local UIS = game:GetService("UserInputService")
     
-    pcall(function()
-        self.CombatFlags = require(Modules.Flags).COMBAT_REMOTE_THREAD
-        self.ShootFunction = getupvalue(require(ReplicatedStorage.Controllers.CombatController).Attack, 9)
-        local LocalScript = Player:WaitForChild("PlayerScripts"):FindFirstChildOfClass("LocalScript")
-        if LocalScript and getsenv then
-            self.HitFunction = getsenv(LocalScript)._G.SendHitsToServer
-        end
-    end)
+    -- Configuration
+    local AttackSpeed = 0.1 
+    local SuperMode = false 
+    local AutoClick = false
     
-    return self
-end
-
-function FastAttack:IsEntityAlive(entity)
-    local humanoid = entity and entity:FindFirstChild("Humanoid")
-    return humanoid and humanoid.Health > 0
-end
-
-function FastAttack:CheckStun(Character, Humanoid, ToolTip)
-    local Stun = Character:FindFirstChild("Stun")
-    local Busy = Character:FindFirstChild("Busy")
-    if Humanoid.Sit and (ToolTip == "Sword" or ToolTip == "Melee" or ToolTip == "Blox Fruit") then
-        return false
-    elseif Stun and Stun.Value > 0 or Busy and Busy.Value then
-        return false
-    end
-    return true
-end
-
-function FastAttack:GetBladeHits(Character, Distance)
-    local Position = Character:GetPivot().Position
-    local BladeHits = {}
-    Distance = Distance or Config.AttackDistance
+    -- Táº¡o GUI
+    local ScreenGui = Instance.new("ScreenGui")
+    local Frame = Instance.new("Frame")
+    local Title = Instance.new("TextLabel")
+    local ToggleBtn = Instance.new("TextButton")
+    local AutoBtn = Instance.new("TextButton")
+    local SpeedLabel = Instance.new("TextLabel")
+    local SpeedBox = Instance.new("TextBox")
     
-    local function ProcessTargets(Folder, CanAttack)
-        for _, Enemy in ipairs(Folder:GetChildren()) do
-            if Enemy ~= Character and self:IsEntityAlive(Enemy) then
-                local BasePart = Enemy:FindFirstChild(Config.HitboxLimbs[math.random(#Config.HitboxLimbs)]) or Enemy:FindFirstChild("HumanoidRootPart")
-                if BasePart and (Position - BasePart.Position).Magnitude <= Distance then
-                    if not self.EnemyRootPart then
-                        self.EnemyRootPart = BasePart
-                    else
-                        table.insert(BladeHits, {Enemy, BasePart})
+    ScreenGui.Name = "SuperM1Gui"
+    ScreenGui.Parent = game:GetService("CoreGui")
+    
+    Frame.Name = "MainFrame"
+    Frame.Parent = ScreenGui
+    Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    Frame.BorderSizePixel = 2
+    Frame.BorderColor3 = Color3.fromRGB(0, 150, 255)
+    Frame.Position = UDim2.new(0.8, 0, 0.3, 0)
+    Frame.Size = UDim2.new(0, 200, 0, 180)
+    Frame.Active = true
+    Frame.Draggable = true
+    
+    Title.Name = "Title"
+    Title.Parent = Frame
+    Title.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    Title.Size = UDim2.new(1, 0, 0, 30)
+    Title.Text = "SUPER M1 ATTACK"
+    Title.TextColor3 = Color3.fromRGB(0, 200, 255)
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 14
+    
+    ToggleBtn.Name = "ToggleBtn"
+    ToggleBtn.Parent = Frame
+    ToggleBtn.Position = UDim2.new(0.1, 0, 0.2, 0)
+    ToggleBtn.Size = UDim2.new(0.8, 0, 0, 35)
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleBtn.Font = Enum.Font.Gotham
+    ToggleBtn.TextSize = 12
+    ToggleBtn.Text = "SUPER MODE: OFF"
+    
+    AutoBtn.Name = "AutoBtn"
+    AutoBtn.Parent = Frame
+    AutoBtn.Position = UDim2.new(0.1, 0, 0.45, 0)
+    AutoBtn.Size = UDim2.new(0.8, 0, 0, 35)
+    AutoBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    AutoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    AutoBtn.Font = Enum.Font.Gotham
+    AutoBtn.TextSize = 12
+    AutoBtn.Text = "AUTO CLICK: OFF"
+    
+    SpeedLabel.Name = "SpeedLabel"
+    SpeedLabel.Parent = Frame
+    SpeedLabel.Position = UDim2.new(0.1, 0, 0.7, 0)
+    SpeedLabel.Size = UDim2.new(0.4, 0, 0, 25)
+    SpeedLabel.BackgroundTransparency = 1
+    SpeedLabel.Text = "Speed:"
+    SpeedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    SpeedLabel.Font = Enum.Font.Gotham
+    SpeedLabel.TextSize = 12
+    
+    SpeedBox.Name = "SpeedBox"
+    SpeedBox.Parent = Frame
+    SpeedBox.Position = UDim2.new(0.55, 0, 0.7, 0)
+    SpeedBox.Size = UDim2.new(0.35, 0, 0, 25)
+    SpeedBox.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    SpeedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SpeedBox.Font = Enum.Font.Gotham
+    SpeedBox.TextSize = 12
+    SpeedBox.Text = "0.1"
+    SpeedBox.PlaceholderText = "Speed"
+    
+    -- Function Ä‘á»ƒ thá»±c hiá»‡n táº¥n cĂ´ng
+    local function performAttack()
+        if SuperMode then
+            -- MĂ´ phá»ng click chuá»™t vá»›i tá»‘c Ä‘á»™ cao
+            for i = 1, 5 do -- 5 láº§n táº¥n cĂ´ng nhanh
+                task.wait(AttackSpeed / 5)
+                -- Gá»­i sá»± kiá»‡n click (giáº£ láº­p)
+                if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+                    -- KĂ­ch hoáº¡t animation táº¥n cĂ´ng
+                    local args = {
+                        [1] = "mouse1",
+                        [2] = Mouse.Hit
+                    }
+                    
+                    -- TĂ¬m remote event Ä‘á»ƒ gá»­i táº¥n cĂ´ng
+                    local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+                    if remotes then
+                        local combat = remotes:FindFirstChild("Combat")
+                        if combat then
+                            combat:FireServer(unpack(args))
+                        end
                     end
                 end
             end
         end
     end
     
-    if Config.AttackMobs then ProcessTargets(Workspace.Enemies) end
-    if Config.AttackPlayers then ProcessTargets(Workspace.Characters, true) end
-    
-    return BladeHits
-end
-
-function FastAttack:GetClosestEnemy(Character, Distance)
-    local BladeHits = self:GetBladeHits(Character, Distance)
-    local Closest, MinDistance = nil, math.huge
-    
-    for _, Hit in ipairs(BladeHits) do
-        local Magnitude = (Character:GetPivot().Position - Hit[2].Position).Magnitude
-        if Magnitude < MinDistance then
-            MinDistance = Magnitude
-            Closest = Hit[2]
-        end
-    end
-    return Closest
-end
-
-function FastAttack:GetCombo()
-    local Combo = (tick() - self.ComboDebounce) <= Config.ComboResetTime and self.M1Combo or 0
-    Combo = Combo >= Config.MaxCombo and 1 or Combo + 1
-    self.ComboDebounce = tick()
-    self.M1Combo = Combo
-    return Combo
-end
-
-function FastAttack:ShootInTarget(TargetPosition)
-    local Character = Player.Character
-    if not self:IsEntityAlive(Character) then return end
-    
-    local Equipped = Character:FindFirstChildOfClass("Tool")
-    if not Equipped or Equipped.ToolTip ~= "Gun" then return end
-    
-    local Cooldown = Equipped:FindFirstChild("Cooldown") and Equipped.Cooldown.Value or 0.3
-    if (tick() - self.ShootDebounce) < Cooldown then return end
-    
-    local ShootType = self.SpecialShoots[Equipped.Name] or "Normal"
-    if ShootType == "Position" or (ShootType == "TAP" and Equipped:FindFirstChild("RemoteEvent")) then
-        Equipped:SetAttribute("LocalTotalShots", (Equipped:GetAttribute("LocalTotalShots") or 0) + 1)
-        GunValidator:FireServer(self:GetValidator2())
-        
-        if ShootType == "TAP" then
-            Equipped.RemoteEvent:FireServer("TAP", TargetPosition)
+    -- Toggle Super Mode
+    ToggleBtn.MouseButton1Click:Connect(function()
+        SuperMode = not SuperMode
+        if SuperMode then
+            ToggleBtn.Text = "SUPER MODE: ON"
+            ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+            print("Super M1 Mode: ON")
         else
-            ShootGunEvent:FireServer(TargetPosition)
+            ToggleBtn.Text = "SUPER MODE: OFF"
+            ToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+            print("Super M1 Mode: OFF")
         end
-        self.ShootDebounce = tick()
-    else
-        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
-        task.wait(0.05)
-        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
-        self.ShootDebounce = tick()
-    end
-end
-
-function FastAttack:GetValidator2()
-    local v1 = getupvalue(self.ShootFunction, 15)
-    local v2 = getupvalue(self.ShootFunction, 13)
-    local v3 = getupvalue(self.ShootFunction, 16)
-    local v4 = getupvalue(self.ShootFunction, 17)
-    local v5 = getupvalue(self.ShootFunction, 14)
-    local v6 = getupvalue(self.ShootFunction, 12)
-    local v7 = getupvalue(self.ShootFunction, 18)
+    end)
     
-    local v8 = v6 * v2
-    local v9 = (v5 * v2 + v6 * v1) % v3
-    v9 = (v9 * v3 + v8) % v4
-    v5 = math.floor(v9 / v3)
-    v6 = v9 - v5 * v3
-    v7 = v7 + 1
-    
-    setupvalue(self.ShootFunction, 15, v1)
-    setupvalue(self.ShootFunction, 13, v2)
-    setupvalue(self.ShootFunction, 16, v3)
-    setupvalue(self.ShootFunction, 17, v4)
-    setupvalue(self.ShootFunction, 14, v5)
-    setupvalue(self.ShootFunction, 12, v6)
-    setupvalue(self.ShootFunction, 18, v7)
-    
-    return math.floor(v9 / v4 * 16777215), v7
-end
-
-function FastAttack:UseNormalClick(Character, Humanoid, Cooldown)
-    self.EnemyRootPart = nil
-    local BladeHits = self:GetBladeHits(Character)
-    
-    if self.EnemyRootPart then
-        RegisterAttack:FireServer(Cooldown)
-        if self.CombatFlags and self.HitFunction then
-            self.HitFunction(self.EnemyRootPart, BladeHits)
+    -- Toggle Auto Click
+    AutoBtn.MouseButton1Click:Connect(function()
+        AutoClick = not AutoClick
+        if AutoClick then
+            AutoBtn.Text = "AUTO CLICK: ON"
+            AutoBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+            print("Auto Click: ON")
         else
-            RegisterHit:FireServer(self.EnemyRootPart, BladeHits)
+            AutoBtn.Text = "AUTO CLICK: OFF"
+            AutoBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+            print("Auto Click: OFF")
         end
-    end
-end
-
-function FastAttack:UseFruitM1(Character, Equipped, Combo)
-    local Targets = self:GetBladeHits(Character)
-    if not Targets[1] then return end
+    end)
     
-    local Direction = (Targets[1][2].Position - Character:GetPivot().Position).Unit
-    Equipped.LeftClickRemote:FireServer(Direction, Combo)
-end
-
-function FastAttack:Attack()
-    if not Config.AutoClickEnabled or (tick() - self.Debounce) < Config.AttackCooldown then return end
-    local Character = Player.Character
-    if not Character or not self:IsEntityAlive(Character) then return end
-    
-    local Humanoid = Character.Humanoid
-    local Equipped = Character:FindFirstChildOfClass("Tool")
-    if not Equipped then return end
-    
-    local ToolTip = Equipped.ToolTip
-    if not table.find({"Melee", "Blox Fruit", "Sword", "Gun"}, ToolTip) then return end
-    
-    local Cooldown = Equipped:FindFirstChild("Cooldown") and Equipped.Cooldown.Value or Config.AttackCooldown
-    if not self:CheckStun(Character, Humanoid, ToolTip) then return end
-    
-    local Combo = self:GetCombo()
-    Cooldown = Cooldown + (Combo >= Config.MaxCombo and 0.05 or 0)
-    self.Debounce = Combo >= Config.MaxCombo and ToolTip ~= "Gun" and (tick() + 0.05) or tick()
-    
-    if ToolTip == "Blox Fruit" and Equipped:FindFirstChild("LeftClickRemote") then
-        self:UseFruitM1(Character, Equipped, Combo)
-    elseif ToolTip == "Gun" then
-        local Target = self:GetClosestEnemy(Character, 120)
-        if Target then
-            self:ShootInTarget(Target.Position)
+    -- Update attack speed
+    SpeedBox.FocusLost:Connect(function()
+        local num = tonumber(SpeedBox.Text)
+        if num and num > 0 then
+            AttackSpeed = math.min(num, 1.0) -- Giá»›i háº¡n tá»‘c Ä‘á»™
+            SpeedBox.Text = tostring(AttackSpeed)
+            print("Attack Speed set to: " .. AttackSpeed)
+        else
+            SpeedBox.Text = "0.1"
+            AttackSpeed = 0.1
         end
-    else
-        self:UseNormalClick(Character, Humanoid, Cooldown)
-    end
-end
-
-local AttackInstance = FastAttack.new()
-table.insert(AttackInstance.Connections, RunService.Stepped:Connect(function()
-    AttackInstance:Attack()
-end))
-
-for _, v in pairs(getgc(true)) do
-    if typeof(v) == "function" and iscclosure(v) then
-        local name = debug.getinfo(v).name
-        if name == "Attack" or name == "attack" or name == "RegisterHit" then
-            hookfunction(v, function(...)
-                AttackInstance:Attack()
-                return v(...)
-            end)
+    end)
+    
+    -- Tá»± Ä‘á»™ng táº¥n cĂ´ng khi AutoClick báº­t
+    spawn(function()
+        while true do
+            if AutoClick and SuperMode then
+                performAttack()
+            end
+            task.wait(AttackSpeed)
         end
-    end
-end
----Fast 2 ---
-local Modules = game.ReplicatedStorage.Modules
-local Net = Modules.Net
-local Register_Hit, Register_Attack = Net:WaitForChild("RE/RegisterHit"), Net:WaitForChild("RE/RegisterAttack")
-local Funcs = {}
-function GetAllBladeHits()
-    bladehits = {}
-    for _, v in pairs(workspace.Enemies:GetChildren()) do
-        if v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 
-        and (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 65 then
-            table.insert(bladehits, v)
+    end)
+    
+    -- Táº¥n cĂ´ng khi click chuá»™t
+    UIS.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed then
+            if input.UserInputType == Enum.UserInputType.MouseButton1 and SuperMode then
+                if not AutoClick then -- Chá»‰ táº¥n cĂ´ng náº¿u AutoClick táº¯t
+                    performAttack()
+                end
+            end
+            
+            -- PhĂ­m táº¯t (VĂ­ dá»¥: F Ä‘á»ƒ báº­t/táº¯t)
+            if input.KeyCode == Enum.KeyCode.F then
+                SuperMode = not SuperMode
+                ToggleBtn.Text = SuperMode and "SUPER MODE: ON" or "SUPER MODE: OFF"
+                ToggleBtn.BackgroundColor3 = SuperMode and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(50, 50, 60)
+            end
         end
-    end
-    return bladehits
-end
-function Getplayerhit()
-    bladehits = {}
-    for _, v in pairs(workspace.Characters:GetChildren()) do
-        if v.Name ~= game.Players.LocalPlayer.Name and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 
-        and (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 65 then
-            table.insert(bladehits, v)
-        end
-    end
-    return bladehits
-end
-function Funcs:Attack()
-    local bladehits = {}
-    for r,v in pairs(GetAllBladeHits()) do
-        table.insert(bladehits, v)
-    end
-    for r,v in pairs(Getplayerhit()) do
-        table.insert(bladehits, v)
-    end
-    if #bladehits == 0 then return end
-    local args = {
-        [1] = nil;
-        [2] = {},
-        [4] = "078da341"
-    }
-    for r, v in pairs(bladehits) do
-        Register_Attack:FireServer(0)
-        if not args[1] then
-            args[1] = v.Head
-        end
-        args[2][r] = {
-            [1] = v,
-            [2] = v.HumanoidRootPart
-        }
-    end
-    Register_Hit:FireServer(unpack(args))
+    end)
+    
+    print("Super M1 Attack Script loaded successfully!")
+    print("Controls:")
+    print("- Click Toggle button to enable/disable")
+    print("- F key to toggle super mode")
+    print("- Adjust speed in the text box")
+    
+else
+    warn("This script only works in Blox Fruit!")
 end
