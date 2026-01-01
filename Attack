@@ -1,3 +1,37 @@
+local WindUI = (loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")))();
+local Window = WindUI:CreateWindow({
+	Title = "Bear Hud",
+	Author = "by Quang Huy",
+	Folder = "Bear Hud",
+	Size = UDim2.fromOffset(520, 300),
+	Transparent = true,
+	Theme = "Light",
+	SideBarWidth = 190,
+	HasOutline = false,
+});
+Window:EditOpenButton({
+	Title = "Bear Hud",
+	CornerRadius = UDim.new(0, 10),
+	Draggable = false
+});
+local Tabs = {
+    InfoTab = Window:Tab({
+		Title = "Thông Tin",
+		Icon = "info",
+		Desc = "Info Section"
+	}),
+	MiscTab = Window:Tab({
+		Title = "Tab Misc",
+		Icon = "layout-grid",
+		Desc = "Misc Section"
+	})
+};
+Window:SelectTab(1);
+_G.Settings = {
+	Main = {
+		["Fast Attack Mode"] = "Normal",
+		["Attack Aura"] = true
+	},
 local AttackList = {
 	"Slow",
 	"Normal",
