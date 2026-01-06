@@ -1,77 +1,74 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("Dung Script - Optimized", "BloodTheme")
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
 
--- Cấu hình mặc định
-_G.Settings = {
-    Setting = {
-        ["Fast Attack"] = false,
-        ["Fast Attack Mode"] = "Normal",
-        ["Fast Attack Delay"] = 0.22,
-        ["Attack Aura"] = false
-    },
-    Main = {
-        ["Auto Farm Fruit Mastery"] = false,
-        ["Auto Farm Gun Mastery"] = false
-    }
-}
+-- Tạo cửa sổ chính
+local Window = OrionLib:MakeWindow({
+    Name = "Script Tổng Hợp By [Tên Của Bạn]", 
+    HidePremium = false, 
+    SaveConfig = true, 
+    ConfigFolder = "MyScriptConfig",
+    IntroText = "Đang Khởi Chạy..."
+})
 
--- Hàm Lưu Cài Đặt (Tùy chỉnh nếu cần lưu vào file)
-local function SaveSetting()
-    -- print("Settings Updated: Mode " .. _G.Settings.Setting["Fast Attack Mode"])
-end
+--- PHẦN 1: TAB CHÍNH (MAIN) ---
+local MainTab = Window:MakeTab({
+	Name = "Tính Năng Chính",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
 
--- Hàm Attack (Giả lập logic tấn công của game)
--- Lưu ý: Bạn cần thay phần này bằng RemoteEvent tấn công thực tế của game bạn chơi
-local function ExecuteAttack()
-    -- Ví dụ: game:GetService("ReplicatedStorage").RigEvent:FireServer()
-    print("Đang đánh với tốc độ: " .. _G.Settings.Setting["Fast Attack Delay"])
-end
-
--- Tạo giao diện
-local MainTab = Window:NewTab("Main")
-local CombatSection = MainTab:NewSection("Combat Settings")
-
--- 1. Bật/Tắt Fast Attack
-CombatSection:NewToggle("Attack Aura", "Tự động tấn công quái xung quanh", function(state)
-    _G.Settings.Setting["Attack Aura"] = state
-    SaveSetting()
-end)
-
--- 2. Chọn Chế độ & Tự cập nhật Delay (Không cần dùng vòng lặp while)
-local Delays = {
-    ["Slow"] = 0.32,
-    ["Normal"] = 0.22,
-    ["Fast"] = 0.17,
-    ["Super Fast"] = 0.12
-}
-
-CombatSection:NewDropdown("Fast Attack Mode", "Chọn tốc độ đánh", {"Slow", "Normal", "Fast", "Super Fast"}, function(value)
-    _G.Settings.Setting["Fast Attack Mode"] = value
-    _G.Settings.Setting["Fast Attack Delay"] = Delays[value] or 0.22
-    SaveSetting()
-end)
-
--- LOGIC THỰC THI (Tối ưu hóa hiệu suất)
-task.spawn(function()
-    local lastAttack = 0
-    
-    -- Sử dụng Heartbeat thay cho RenderStepped để chạy mượt mà ở phía Client/Physical
-    game:GetService("RunService").Heartbeat:Connect(function()
-        local currentTime = tick()
-        
-        -- Kiểm tra điều kiện: Bật Aura + Không farm Mastery + Đủ thời gian delay
-        if _G.Settings.Setting["Attack Aura"] 
-           and not _G.Settings.Main["Auto Farm Fruit Mastery"] 
-           and not _G.Settings.Main["Auto Farm Gun Mastery"] then
-           
-            if (currentTime - lastAttack) >= _G.Settings.Setting["Fast Attack Delay"] then
-                lastAttack = currentTime
-                
-                -- Thực hiện tấn công an toàn
-                pcall(function()
-                    ExecuteAttack()
-                end)
-            end
+MainTab:AddToggle({
+	Name = "Tự Động Farm (Auto Farm)",
+	Default = false,
+	Callback = function(Value)
+		_G.AutoFarm = Value
+        while _G.AutoFarm do
+            wait(1)
+            print("Đang chạy Auto Farm...")
+            -- Code chức năng Farm của bạn để ở đây
         end
-    end)
-end)
+	end    
+})
+
+MainTab:AddSlider({
+	Name = "Tốc Độ Chạy (Walkspeed)",
+	Min = 16,
+	Max = 500,
+	Default = 16,
+	Color = Color3.fromRGB(255,255,255),
+	Increment = 1,
+	ValueName = "Speed",
+	Callback = function(Value)
+		game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+	end    
+})
+
+--- PHẦN 2: TAB DỊCH CHUYỂN (TELEPORT) ---
+local TeleportTab = Window:MakeTab({
+	Name = "Dịch Chuyển",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+
+TeleportTab:AddButton({
+	Name = "Đến Đảo Tân Thủ",
+	Callback = function()
+      		print("Đang dịch chuyển...")
+            -- Code dịch chuyển tọa độ ở đây
+  	end    
+})
+
+--- PHẦN 3: TAB CÀI ĐẶT ---
+local SettingTab = Window:MakeTab({
+	Name = "Cài Đặt",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+
+SettingTab:AddButton({
+	Name = "Tắt Giao Diện (Destroy UI)",
+	Callback = function()
+        OrionLib:Destroy()
+  	end    
+})
+
+OrionLib:Init()
