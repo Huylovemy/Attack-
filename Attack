@@ -1,7 +1,7 @@
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("Dung Script - Fast Attack", "BloodTheme")
+local Window = Library.CreateLib("Dung Script - Optimized", "BloodTheme")
 
--- Thiết lập biến toàn cục để lưu trữ cài đặt (theo logic của bạn)
+-- Cấu hình mặc định
 _G.Settings = {
     Setting = {
         ["Fast Attack"] = false,
@@ -15,62 +15,63 @@ _G.Settings = {
     }
 }
 
--- Hàm lưu cài đặt (Bạn có thể tùy biến để lưu vào file .txt)
-getgenv().SaveSetting = function()
-    print("Settings Saved!")
+-- Hàm Lưu Cài Đặt (Tùy chỉnh nếu cần lưu vào file)
+local function SaveSetting()
+    -- print("Settings Updated: Mode " .. _G.Settings.Setting["Fast Attack Mode"])
 end
 
--- Hàm Attack giả lập (Bạn cần thay thế bằng hàm Attack thực tế của game)
-function Attack()
-    -- Logic tấn công của game nằm ở đây
-    print("Đang tấn công với delay: " .. _G.Settings.Setting["Fast Attack Delay"])
+-- Hàm Attack (Giả lập logic tấn công của game)
+-- Lưu ý: Bạn cần thay phần này bằng RemoteEvent tấn công thực tế của game bạn chơi
+local function ExecuteAttack()
+    -- Ví dụ: game:GetService("ReplicatedStorage").RigEvent:FireServer()
+    print("Đang đánh với tốc độ: " .. _G.Settings.Setting["Fast Attack Delay"])
 end
 
--- Tạo Tab Cài đặt
+-- Tạo giao diện
 local MainTab = Window:NewTab("Main")
-local SettingsSection = MainTab:NewSection("Combat Settings")
+local CombatSection = MainTab:NewSection("Combat Settings")
 
--- 1. Nút bật/tắt Fast Attack
-SettingsSection:NewToggle("Fast Attack", "Bật/Tắt tấn công nhanh", function(value)
-    _G.Settings.Setting["Fast Attack"] = value
+-- 1. Bật/Tắt Fast Attack
+CombatSection:NewToggle("Attack Aura", "Tự động tấn công quái xung quanh", function(state)
+    _G.Settings.Setting["Attack Aura"] = state
     SaveSetting()
 end)
 
--- 2. Danh sách chọn chế độ tốc độ
-local AttackList = {"Slow", "Normal", "Fast", "Super Fast"}
-SettingsSection:NewDropdown("Fast Attack Mode", "Chọn tốc độ đánh", AttackList, function(value)
+-- 2. Chọn Chế độ & Tự cập nhật Delay (Không cần dùng vòng lặp while)
+local Delays = {
+    ["Slow"] = 0.32,
+    ["Normal"] = 0.22,
+    ["Fast"] = 0.17,
+    ["Super Fast"] = 0.12
+}
+
+CombatSection:NewDropdown("Fast Attack Mode", "Chọn tốc độ đánh", {"Slow", "Normal", "Fast", "Super Fast"}, function(value)
     _G.Settings.Setting["Fast Attack Mode"] = value
+    _G.Settings.Setting["Fast Attack Delay"] = Delays[value] or 0.22
     SaveSetting()
 end)
 
--- 3. Nút bật/tắt Attack Aura
-SettingsSection:NewToggle("Attack Aura", "Tự động đánh quái xung quanh", function(value)
-    _G.Settings.Setting["Attack Aura"] = value
-    SaveSetting()
-end)
-
--- Logic xử lý Delay (Đoạn mã của bạn)
-spawn(function()
-    while wait() do
-        if _G.Settings.Setting["Fast Attack Mode"] == "Slow" then
-            _G.Settings.Setting["Fast Attack Delay"] = 0.32
-        elseif _G.Settings.Setting["Fast Attack Mode"] == "Normal" then
-            _G.Settings.Setting["Fast Attack Delay"] = 0.22
-        elseif _G.Settings.Setting["Fast Attack Mode"] == "Fast" then
-            _G.Settings.Setting["Fast Attack Delay"] = 0.17
-        elseif _G.Settings.Setting["Fast Attack Mode"] == "Super Fast" then
-            _G.Settings.Setting["Fast Attack Delay"] = 0.12
-        end
-    end
-end)
-
--- Logic thực hiện Attack Aura (Đoạn mã của bạn)
-spawn(function()
-    game:GetService("RunService").RenderStepped:Connect(function()
-        if _G.Settings.Setting["Attack Aura"] and (not _G.Settings.Main["Auto Farm Fruit Mastery"]) and (not _G.Settings.Main["Auto Farm Gun Mastery"]) then
-            pcall(function()
-                Attack()
-            end)
+-- LOGIC THỰC THI (Tối ưu hóa hiệu suất)
+task.spawn(function()
+    local lastAttack = 0
+    
+    -- Sử dụng Heartbeat thay cho RenderStepped để chạy mượt mà ở phía Client/Physical
+    game:GetService("RunService").Heartbeat:Connect(function()
+        local currentTime = tick()
+        
+        -- Kiểm tra điều kiện: Bật Aura + Không farm Mastery + Đủ thời gian delay
+        if _G.Settings.Setting["Attack Aura"] 
+           and not _G.Settings.Main["Auto Farm Fruit Mastery"] 
+           and not _G.Settings.Main["Auto Farm Gun Mastery"] then
+           
+            if (currentTime - lastAttack) >= _G.Settings.Setting["Fast Attack Delay"] then
+                lastAttack = currentTime
+                
+                -- Thực hiện tấn công an toàn
+                pcall(function()
+                    ExecuteAttack()
+                end)
+            end
         end
     end)
 end)
