@@ -1,89 +1,76 @@
-local WindUI = (loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")))();
-local Window = WindUI:CreateWindow({
-	Title = "Bear Hud",
-	Author = "by Quang Huy",
-	Folder = "Bear Hud",
-	Size = UDim2.fromOffset(520, 300),
-	Transparent = true,
-	Theme = "Light",
-	SideBarWidth = 190,
-	HasOutline = false,
-});
-Window:EditOpenButton({
-	Title = "Bear Hud",
-	CornerRadius = UDim.new(0, 10),
-	Draggable = false
-});
-local Tabs = {
-    SettingsTab = Window:Tab({
-		Title = "Tab Settings",
-		Icon = "settings",
-		Desc = "Settings Section"
-	})
-};
-Window:SelectTab(1);
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("Dung Script - Fast Attack", "BloodTheme")
+
+-- Thiết lập biến toàn cục để lưu trữ cài đặt (theo logic của bạn)
 _G.Settings = {
-	Main = {
-		["Fast Attack Mode"] = "Normal",
-		["Attack Aura"] = true
-	},
-local AttackList = {
-	"Slow",
-	"Normal",
-	"Fast",
-	"Super Fast"
-};
-FastAttackMethodDropdown = Tabs.SettingsTab:Dropdown({
-	Title = "Fast Attack Method",
-	Value = _G.Settings.Setting["Fast Attack Mode"],
-	Values = AttackList,
-	Callback = function(option)
-		_G.Settings.Setting["Fast Attack Mode"] = option;
-	end
-});
+    Setting = {
+        ["Fast Attack"] = false,
+        ["Fast Attack Mode"] = "Normal",
+        ["Fast Attack Delay"] = 0.22,
+        ["Attack Aura"] = false
+    },
+    Main = {
+        ["Auto Farm Fruit Mastery"] = false,
+        ["Auto Farm Gun Mastery"] = false
+    }
+}
+
+-- Hàm lưu cài đặt (Bạn có thể tùy biến để lưu vào file .txt)
+getgenv().SaveSetting = function()
+    print("Settings Saved!")
+end
+
+-- Hàm Attack giả lập (Bạn cần thay thế bằng hàm Attack thực tế của game)
+function Attack()
+    -- Logic tấn công của game nằm ở đây
+    print("Đang tấn công với delay: " .. _G.Settings.Setting["Fast Attack Delay"])
+end
+
+-- Tạo Tab Cài đặt
+local MainTab = Window:NewTab("Main")
+local SettingsSection = MainTab:NewSection("Combat Settings")
+
+-- 1. Nút bật/tắt Fast Attack
+SettingsSection:NewToggle("Fast Attack", "Bật/Tắt tấn công nhanh", function(value)
+    _G.Settings.Setting["Fast Attack"] = value
+    SaveSetting()
+end)
+
+-- 2. Danh sách chọn chế độ tốc độ
+local AttackList = {"Slow", "Normal", "Fast", "Super Fast"}
+SettingsSection:NewDropdown("Fast Attack Mode", "Chọn tốc độ đánh", AttackList, function(value)
+    _G.Settings.Setting["Fast Attack Mode"] = value
+    SaveSetting()
+end)
+
+-- 3. Nút bật/tắt Attack Aura
+SettingsSection:NewToggle("Attack Aura", "Tự động đánh quái xung quanh", function(value)
+    _G.Settings.Setting["Attack Aura"] = value
+    SaveSetting()
+end)
+
+-- Logic xử lý Delay (Đoạn mã của bạn)
 spawn(function()
-	while wait() do
-		if _G.Settings.Setting["Fast Attack Mode"] == "Slow" then
-			_G.Settings.Setting["Fast Attack Delay"] = 0.32;
-		elseif _G.Settings.Setting["Fast Attack Mode"] == "Normal" then
-			_G.Settings.Setting["Fast Attack Delay"] = 0.22;
-		elseif _G.Settings.Setting["Fast Attack Mode"] == "Fast" then
-			_G.Settings.Setting["Fast Attack Delay"] = 0.17;
-		elseif _G.Settings.Setting["Fast Attack Mode"] == "Super Fast" then
-			_G.Settings.Setting["Fast Attack Delay"] = 0.12;
-		end;
-	end;
-end);
+    while wait() do
+        if _G.Settings.Setting["Fast Attack Mode"] == "Slow" then
+            _G.Settings.Setting["Fast Attack Delay"] = 0.32
+        elseif _G.Settings.Setting["Fast Attack Mode"] == "Normal" then
+            _G.Settings.Setting["Fast Attack Delay"] = 0.22
+        elseif _G.Settings.Setting["Fast Attack Mode"] == "Fast" then
+            _G.Settings.Setting["Fast Attack Delay"] = 0.17
+        elseif _G.Settings.Setting["Fast Attack Mode"] == "Super Fast" then
+            _G.Settings.Setting["Fast Attack Delay"] = 0.12
+        end
+    end
+end)
+
+-- Logic thực hiện Attack Aura (Đoạn mã của bạn)
 spawn(function()
-	while wait() do
-		if _G.Settings.Setting["Bring Mob"] then
-			pcall(function()
-				if _G.Settings.Setting["Bring Mob Mode"] == "Low" then
-					BringMobDistance = 150;
-				elseif _G.Settings.Setting["Bring Mob Mode"] == "Normal" then
-					BringMobDistance = 250;
-				elseif _G.Settings.Setting["Bring Mob Mode"] == "High" then
-					BringMobDistance = 800;
-				end;
-			end);
-		end;
-	end;
-end);
-AttackAuraToggle = Tabs.SettingsTab:Toggle({
-	Title = "Atatck Aura",
-	Desc = "Attack Nearest Enemies",
-	Value = _G.Settings.Items["Attack Aura"],
-	Callback = function(state)
-		_G.Settings.Items["Attack Aura"] = state;
-		(getgenv()).SaveSetting();
-	end
-});
-spawn(function()
-	(game:GetService("RunService")).RenderStepped:Connect(function()
-		if _G.Settings.Setting["Attack Aura"] and (not _G.Settings.Main["Auto Farm Fruit Mastery"]) and (not _G.Settings.Main["Auto Farm Gun Mastery"]) then
-			pcall(function()
-				Attack();
-			end);
-		end;
-	end);
-end);
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if _G.Settings.Setting["Attack Aura"] and (not _G.Settings.Main["Auto Farm Fruit Mastery"]) and (not _G.Settings.Main["Auto Farm Gun Mastery"]) then
+            pcall(function()
+                Attack()
+            end)
+        end
+    end)
+end)
