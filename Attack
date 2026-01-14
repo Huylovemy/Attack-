@@ -1,3 +1,8 @@
+Setting = {
+	["Attack Aura"] = true,
+["Fast Attack"] = true,
+}
+};
 SettingsTab:Dropdown("Fast Attack Mode", AttackList, _G.Settings.Setting["Fast Attack Mode"], function(value)
 	_G.Settings.Setting["Fast Attack Mode"] = value;
 	(getgenv()).SaveSetting();
