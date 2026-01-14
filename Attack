@@ -1,29 +1,37 @@
 -- Biến điều khiển
 _G.FastAttack = false
 
--- 1. TẠO UI SIÊU NHỎ GỌN (Không chặn cảm ứng)
+-- 1. TẠO UI SIÊU NHỎ GỌN
 local ScreenGui = Instance.new("ScreenGui")
 local ToggleButton = Instance.new("TextButton")
 local UICorner = Instance.new("UICorner")
+local UIStroke = Instance.new("UIStroke") -- Thêm khung (border)
 
 ScreenGui.Name = "SafeM1_Gui"
-ScreenGui.Parent = game.CoreGui
-ScreenGui.IgnoreGuiInset = true -- Giúp UI không đẩy các thành phần khác
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.IgnoreGuiInset = true
 
 ToggleButton.Name = "M1Button"
 ToggleButton.Parent = ScreenGui
+-- Chỉnh nền trong suốt hoàn toàn
 ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-ToggleButton.BackgroundTransparency = 0.4
-ToggleButton.Position = UDim2.new(0.8, 0, 0.2, 0) -- Đặt bên phải màn hình
+ToggleButton.BackgroundTransparency = 1 
+ToggleButton.Position = UDim2.new(0.8, 0, 0.2, 0)
 ToggleButton.Size = UDim2.new(0, 60, 0, 60)
 ToggleButton.Font = Enum.Font.GothamBold
 ToggleButton.Text = "M1: OFF"
 ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleButton.TextSize = 12
 ToggleButton.Active = true
-ToggleButton.Draggable = true -- Bạn có thể kéo đi chỗ khác nếu vướng
+ToggleButton.Draggable = true
 
-UICorner.CornerRadius = UDim.new(0, 30) -- Nút hình tròn
+-- Cấu hình khung màu xanh
+UIStroke.Parent = ToggleButton
+UIStroke.Color = Color3.fromRGB(0, 170, 255) -- Màu xanh dương
+UIStroke.Thickness = 2 -- Độ dày của khung
+UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+UICorner.CornerRadius = UDim.new(0, 30)
 UICorner.Parent = ToggleButton
 
 -- 2. LOGIC BẬT/TẮT
@@ -32,19 +40,20 @@ ToggleButton.MouseButton1Click:Connect(function()
     if _G.FastAttack then
         ToggleButton.Text = "M1: ON"
         ToggleButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+        UIStroke.Color = Color3.fromRGB(0, 255, 0) -- Đổi khung sang xanh lá khi bật (tùy chọn)
     else
         ToggleButton.Text = "M1: OFF"
         ToggleButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+        UIStroke.Color = Color3.fromRGB(0, 170, 255) -- Trở về xanh dương khi tắt
     end
 end)
 
--- 3. LOGIC TẤN CÔNG (Dùng VirtualInputManager)
+-- 3. LOGIC TẤN CÔNG
 local VIM = game:GetService("VirtualInputManager")
 task.spawn(function()
     while task.wait() do
         if _G.FastAttack then
             pcall(function()
-                -- Tấn công cực nhanh
                 VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0)
                 VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
             end)
