@@ -1,74 +1,14 @@
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
 
--- Tạo cửa sổ chính
-local Window = OrionLib:MakeWindow({
-    Name = "Script Tổng Hợp By [Tên Của Bạn]", 
-    HidePremium = false, 
-    SaveConfig = true, 
-    ConfigFolder = "MyScriptConfig",
-    IntroText = "Đang Khởi Chạy..."
-})
-
---- PHẦN 1: TAB CHÍNH (MAIN) ---
-local MainTab = Window:MakeTab({
-	Name = "Tính Năng Chính",
-	Icon = "rbxassetid://4483345998",
-	PremiumOnly = false
-})
-
-MainTab:AddToggle({
-	Name = "Tự Động Farm (Auto Farm)",
-	Default = false,
-	Callback = function(Value)
-		_G.AutoFarm = Value
-        while _G.AutoFarm do
-            wait(1)
-            print("Đang chạy Auto Farm...")
-            -- Code chức năng Farm của bạn để ở đây
-        end
-	end    
-})
-
-MainTab:AddSlider({
-	Name = "Tốc Độ Chạy (Walkspeed)",
-	Min = 16,
-	Max = 500,
-	Default = 16,
-	Color = Color3.fromRGB(255,255,255),
-	Increment = 1,
-	ValueName = "Speed",
-	Callback = function(Value)
-		game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
-	end    
-})
-
---- PHẦN 2: TAB DỊCH CHUYỂN (TELEPORT) ---
-local TeleportTab = Window:MakeTab({
-	Name = "Dịch Chuyển",
-	Icon = "rbxassetid://4483345998",
-	PremiumOnly = false
-})
-
-TeleportTab:AddButton({
-	Name = "Đến Đảo Tân Thủ",
-	Callback = function()
-      		print("Đang dịch chuyển...")
-            -- Code dịch chuyển tọa độ ở đây
-  	end    
-})
-
---- PHẦN 3: TAB CÀI ĐẶT ---
-local SettingTab = Window:MakeTab({
-	Name = "Cài Đặt",
-	Icon = "rbxassetid://4483345998",
-	PremiumOnly = false
-})
-
-SettingTab:AddButton({
-	Name = "Tắt Giao Diện (Destroy UI)",
-	Callback = function()
-        OrionLib:Destroy()
-  	end    
-})
-
-OrionLib:Init()
+SettingsTab:Toggle("Attack Aura", _G.Settings.Setting["Attack Aura"], "Attack Mob", function(value)
+	_G.Settings.Setting["Attack Aura"] = value;
+	(getgenv()).SaveSetting();
+end);
+spawn(function()
+	(game:GetService("RunService")).RenderStepped:Connect(function()
+		if _G.Settings.Setting["Attack Aura"] and (not _G.Settings.Main["Auto Farm Fruit Mastery"]) and (not _G.Settings.Main["Auto Farm Gun Mastery"]) then
+			pcall(function()
+				Attack();
+			end);
+		end;
+	end);
+end);
