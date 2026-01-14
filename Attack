@@ -1,1 +1,47 @@
+local VIM = game:GetService("VirtualInputManager")
+local player = game.Players.LocalPlayer
 
+_G.FastAttack = true -- Bật/Tắt bằng biến này
+
+task.spawn(function()
+    while task.wait() do -- Tốc độ cực nhanh
+        if _G.FastAttack then
+            pcall(function()
+                VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+                VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+            end)
+        end
+    end
+end)
+local CombatFramework = require(game:GetService("Players").LocalPlayer.PlayerScripts.CombatFramework)
+local CombatFrameworkLib = debug.getupvalues(CombatFramework)[2]
+
+function AttackM1()
+    pcall(function()
+        CombatFrameworkLib.activeController:attack()
+    end)
+end
+
+-- Vòng lặp tấn công
+_G.AutoAttack = true
+task.spawn(function()
+    while task.wait(0.1) do
+        if _G.AutoAttack then
+            AttackM1()
+        end
+    end
+end)
+spawn(function()
+    while wait() do
+        if _G.Attack == true then
+            local p1 = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+            for i,v in pairs(game.Workspace.Enemies:GetChildren()) do
+                if v:FindFirstChild("HumanoidRootPart") and (v.HumanoidRootPart.Position - p1).Magnitude <= 40 then
+                    -- Đoạn gọi Remote hoặc giả lập click
+                    game:GetService("VirtualUser"):CaptureController()
+                    game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
+                end
+            end
+        end
+    end
+end)
