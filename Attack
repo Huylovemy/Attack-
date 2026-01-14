@@ -1,47 +1,59 @@
-local VIM = game:GetService("VirtualInputManager")
-local player = game.Players.LocalPlayer
+-- Khởi tạo biến điều khiển
+_G.FastAttack = false
 
-_G.FastAttack = true -- Bật/Tắt bằng biến này
+-- 1. TẠO GIAO DIỆN (UI)
+local ScreenGui = Instance.new("ScreenGui")
+local ToggleButton = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
+
+-- Cấu hình ScreenGui
+ScreenGui.Name = "M1_Toggle_Gui"
+ScreenGui.Parent = game.CoreGui -- Hiển thị trên lớp trên cùng của game
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Cấu hình Nút Bấm
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Parent = ScreenGui
+ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50) -- Màu đỏ khi tắt
+ToggleButton.Position = UDim2.new(0.5, -50, 0.1, 0) -- Vị trí ở giữa phía trên màn hình
+ToggleButton.Size = UDim2.new(0, 100, 0, 50)
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.Text = "M1: OFF"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 20.000
+
+-- Bo góc cho nút
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = ToggleButton
+
+-- Làm cho nút có thể kéo thả (Dành cho Mobile)
+ToggleButton.Active = true
+ToggleButton.Draggable = true
+
+-- 2. LOGIC BẬT/TẮT KHI BẤM NÚT
+ToggleButton.MouseButton1Click:Connect(function()
+    _G.FastAttack = not _G.FastAttack -- Đảo trạng thái true/false
+    
+    if _G.FastAttack then
+        ToggleButton.Text = "M1: ON"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 255, 50) -- Đổi sang màu xanh
+    else
+        ToggleButton.Text = "M1: OFF"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50) -- Đổi sang màu đỏ
+    end
+end)
+
+-- 3. LOGIC TẤN CÔNG (M1 ATTACK)
+local VIM = game:GetService("VirtualInputManager")
 
 task.spawn(function()
-    while task.wait() do -- Tốc độ cực nhanh
+    while task.wait() do
         if _G.FastAttack then
             pcall(function()
+                -- Giả lập click chuột trái
                 VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0)
                 VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
             end)
-        end
-    end
-end)
-local CombatFramework = require(game:GetService("Players").LocalPlayer.PlayerScripts.CombatFramework)
-local CombatFrameworkLib = debug.getupvalues(CombatFramework)[2]
-
-function AttackM1()
-    pcall(function()
-        CombatFrameworkLib.activeController:attack()
-    end)
-end
-
--- Vòng lặp tấn công
-_G.AutoAttack = true
-task.spawn(function()
-    while task.wait(0.1) do
-        if _G.AutoAttack then
-            AttackM1()
-        end
-    end
-end)
-spawn(function()
-    while wait() do
-        if _G.Attack == true then
-            local p1 = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
-            for i,v in pairs(game.Workspace.Enemies:GetChildren()) do
-                if v:FindFirstChild("HumanoidRootPart") and (v.HumanoidRootPart.Position - p1).Magnitude <= 40 then
-                    -- Đoạn gọi Remote hoặc giả lập click
-                    game:GetService("VirtualUser"):CaptureController()
-                    game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
-                end
-            end
         end
     end
 end)
