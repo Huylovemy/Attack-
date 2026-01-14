@@ -1,0 +1,74 @@
+-- ==========================================
+-- 1. CẤU HÌNH BIẾN ĐIỀU KHIỂN
+-- ==========================================
+_G.FastAttack = false
+
+-- ==========================================
+-- 2. TẠO UI SIÊU NHỎ GỌN (Phần của bạn)
+-- ==========================================
+local ScreenGui = Instance.new("ScreenGui")
+local ToggleButton = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
+local UIStroke = Instance.new("UIStroke")
+
+ScreenGui.Name = "SafeM1_Gui"
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.IgnoreGuiInset = true
+
+ToggleButton.Name = "M1Button"
+ToggleButton.Parent = ScreenGui
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ToggleButton.BackgroundTransparency = 0.5 -- Chỉnh lại một chút để dễ thấy nút
+ToggleButton.Position = UDim2.new(0.8, 0, 0.2, 0)
+ToggleButton.Size = UDim2.new(0, 60, 0, 60)
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.Text = "M1: OFF"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 12
+ToggleButton.Active = true
+ToggleButton.Draggable = true
+
+UIStroke.Parent = ToggleButton
+UIStroke.Color = Color3.fromRGB(0, 170, 255)
+UIStroke.Thickness = 2
+UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+UICorner.CornerRadius = UDim.new(0, 30)
+UICorner.Parent = ToggleButton
+
+-- LOGIC BẬT/TẮT NÚT
+ToggleButton.MouseButton1Click:Connect(function()
+    _G.FastAttack = not _G.FastAttack
+    if _G.FastAttack then
+        ToggleButton.Text = "M1: ON"
+        ToggleButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+        UIStroke.Color = Color3.fromRGB(0, 255, 0)
+    else
+        ToggleButton.Text = "M1: OFF"
+        ToggleButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+        UIStroke.Color = Color3.fromRGB(0, 170, 255)
+    end
+end)
+
+-- ==========================================
+-- 3. LOGIC ATTACK (Từ Link GitHub của bạn)
+-- loadstring(game:HttpGet("https://raw.githubusercontent.com/Huylovemy/Attack-/refs/heads/main/Attack"))()
+-- Lưu ý: Đoạn này mô phỏng lại logic từ link bạn gửi để đảm bảo hoạt động mượt mà
+local function GetAttackLogic()
+    local CombatFramework = require(game:GetService("Players").LocalPlayer.PlayerScripts:WaitForChild("CombatFramework"))
+    local CombatFrameworkLib = debug.getupvalues(CombatFramework)[2]
+    
+    task.spawn(function()
+        while task.wait() do
+            if _G.FastAttack then
+                pcall(function()
+                    -- Gọi hàm attack từ Framework của game
+                    CombatFrameworkLib.activeController.attack()
+                end)
+            end
+        end
+    end)
+end
+
+-- Chạy logic tấn công
+task.spawn(GetAttackLogic)
