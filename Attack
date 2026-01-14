@@ -57,3 +57,32 @@ function AttackModule:AttackEnemy(EnemyHead, Table)
 		RegisterHit:FireServer(EnemyHead, Table or {});
 	end;
 end;
+function AttackModule:AttackNearest()
+	local args = {
+		nil,
+		{}
+	};
+	for _, Enemy in enemyFolder:GetChildren() do
+		if not args[1] and Enemy:FindFirstChild("HumanoidRootPart", true) and client:DistanceFromCharacter(Enemy.HumanoidRootPart.Position) < 60 then
+			args[1] = Enemy:FindFirstChild("HumanoidRootPart");
+		elseif Enemy:FindFirstChild("HumanoidRootPart", true) and client:DistanceFromCharacter(Enemy.HumanoidRootPart.Position) < 60 then
+			table.insert(args[2], {
+				[1] = Enemy,
+				[2] = Enemy:FindFirstChild("HumanoidRootPart")
+			});
+		end;
+	end;
+	self:AttackEnemy(unpack(args));
+end;
+function AttackModule:BladeHits()
+	self:AttackNearest();
+end;
+function Attack()
+	if not _G.Settings.Main["Auto Farm Fruit Mastery"] or (not _G.Settings.Main["Auto Farm Gun Mastery"]) then
+		if _G.Settings.Setting["Fast Attack"] then
+			AttackModule:BladeHits();
+		else
+			AttackModule:BladeHits();
+		end;
+	end;
+end;
