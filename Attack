@@ -1,56 +1,61 @@
--- Khởi tạo biến điều khiển
+-- Khởi tạo biến
 _G.FastAttack = false
 
--- 1. TẠO GIAO DIỆN (UI)
+-- 1. TẠO GIAO DIỆN (Đã tối ưu cho Mobile)
 local ScreenGui = Instance.new("ScreenGui")
 local ToggleButton = Instance.new("TextButton")
 local UICorner = Instance.new("UICorner")
+local UIStroke = Instance.new("UIStroke")
 
 -- Cấu hình ScreenGui
-ScreenGui.Name = "M1_Toggle_Gui"
-ScreenGui.Parent = game.CoreGui -- Hiển thị trên lớp trên cùng của game
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Name = "M1_Safety_Gui"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ResetOnSpawn = false -- Không mất nút khi nhân vật chết
 
--- Cấu hình Nút Bấm
-ToggleButton.Name = "ToggleButton"
+-- Cấu hình Nút Bấm (Đặt ở cạnh phải màn hình để tránh nút di chuyển bên trái)
+ToggleButton.Name = "M1ToggleButton"
 ToggleButton.Parent = ScreenGui
-ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50) -- Màu đỏ khi tắt
-ToggleButton.Position = UDim2.new(0.5, -50, 0.1, 0) -- Vị trí ở giữa phía trên màn hình
-ToggleButton.Size = UDim2.new(0, 100, 0, 50)
-ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30) -- Màu nền tối sang trọng
+ToggleButton.BackgroundTransparency = 0.3
+ToggleButton.Position = UDim2.new(0.85, 0, 0.4, 0) -- Vị trí bên phải, giữa màn hình
+ToggleButton.Size = UDim2.new(0, 70, 0, 70) -- Nút hình vuông nhỏ gọn
+ToggleButton.Font = Enum.Font.GothamBold
 ToggleButton.Text = "M1: OFF"
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.TextSize = 20.000
+ToggleButton.TextColor3 = Color3.fromRGB(255, 50, 50)
+ToggleButton.TextSize = 14
+ToggleButton.Active = true
+ToggleButton.Draggable = true -- Bạn có thể kéo nút đến chỗ nào tùy thích
 
--- Bo góc cho nút
-UICorner.CornerRadius = UDim.new(0, 12)
+-- Làm đẹp nút
+UICorner.CornerRadius = UDim.new(0, 15)
 UICorner.Parent = ToggleButton
 
--- Làm cho nút có thể kéo thả (Dành cho Mobile)
-ToggleButton.Active = true
-ToggleButton.Draggable = true
+UIStroke.Thickness = 2
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
+UIStroke.Parent = ToggleButton
 
--- 2. LOGIC BẬT/TẮT KHI BẤM NÚT
+-- 2. LOGIC BẬT/TẮT
 ToggleButton.MouseButton1Click:Connect(function()
-    _G.FastAttack = not _G.FastAttack -- Đảo trạng thái true/false
+    _G.FastAttack = not _G.FastAttack
     
     if _G.FastAttack then
         ToggleButton.Text = "M1: ON"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 255, 50) -- Đổi sang màu xanh
+        ToggleButton.TextColor3 = Color3.fromRGB(50, 255, 50) -- Chữ xanh
+        UIStroke.Color = Color3.fromRGB(50, 255, 50)
     else
         ToggleButton.Text = "M1: OFF"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50) -- Đổi sang màu đỏ
+        ToggleButton.TextColor3 = Color3.fromRGB(255, 50, 50) -- Chữ đỏ
+        UIStroke.Color = Color3.fromRGB(255, 255, 255)
     end
 end)
 
--- 3. LOGIC TẤN CÔNG (M1 ATTACK)
+-- 3. LOGIC TẤN CÔNG (Dùng VirtualInputManager)
 local VIM = game:GetService("VirtualInputManager")
-
 task.spawn(function()
     while task.wait() do
         if _G.FastAttack then
             pcall(function()
-                -- Giả lập click chuột trái
+                -- Tấn công cực nhanh
                 VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0)
                 VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
             end)
