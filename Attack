@@ -38,28 +38,16 @@ ToggleButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- 3. LOGIC TẤN CÔNG "TÀNG HÌNH" (Không dùng VirtualInputManager)
--- Cách này dùng cho Blox Fruits (HuyScript thường dùng game này)
-local function DoAttack()
-    pcall(function()
-        local CombatFramework = require(game:GetService("Players").LocalPlayer.PlayerScripts.CombatFramework)
-        local CombatFrameworkLib = debug.getupvalues(CombatFramework)[2]
-        if CombatFrameworkLib and CombatFrameworkLib.activeController then
-            CombatFrameworkLib.activeController:attack()
-        end
-    end)
-end
-
--- Vòng lặp tấn công
+-- 3. LOGIC TẤN CÔNG (Dùng VirtualInputManager)
+local VIM = game:GetService("VirtualInputManager")
 task.spawn(function()
-    while task.wait(0.1) do -- Tốc độ 0.1s để ổn định, bạn có thể chỉnh xuống 0.05
+    while task.wait() do
         if _G.FastAttack then
-            DoAttack()
-            
-            -- Nếu cách trên không hoạt động với bản game hiện tại, 
-            -- ta dùng VirtualUser (an toàn hơn VIM cho Mobile)
-            game:GetService("VirtualUser"):CaptureController()
-            game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
+            pcall(function()
+                -- Tấn công cực nhanh
+                VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+                VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+            end)
         end
     end
 end)
