@@ -1,31 +1,54 @@
--- Script đã xoá Gun (Súng), giữ lại Melee, Sword và Fruit.
-spawn(function()
-    while wait() do
-        pcall(function()
-            for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
-                -- Chỉ kiểm tra Melee, Sword và Blox Fruit
-                if v.ToolTip == "Melee" or v.ToolTip == "Sword" or v.ToolTip == "Blox Fruit" then
-                    if game.Players.LocalPlayer.Backpack:FindFirstChild(v.Name) then
-                        local tool = game.Players.LocalPlayer.Backpack:FindFirstChild(v.Name)
-                        game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)
-                    end
-                end
-            end
-        end)
-    end
-end)
+-- Tạo ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+local ToggleButton = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
 
--- Phần Logic Attack (Click)
-spawn(function()
-    while wait() do
-        pcall(function()
-            local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-            -- Kiểm tra nếu vũ khí đang cầm không phải là Súng thì mới thực hiện click
-            if tool and tool.ToolTip ~= "Gun" then
-                local VirtualUser = game:GetService('VirtualUser')
-                VirtualUser:CaptureController()
-                VirtualUser:ClickButton1(Vector2.new(851, 158), game:GetService("Workspace").CurrentCamera.CFrame)
+-- Cấu hình ScreenGui
+ScreenGui.Name = "AuraToggleGui"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Cấu hình Nút bấm
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Parent = ScreenGui
+ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50) -- Màu đỏ (Tắt)
+ToggleButton.Position = UDim2.new(0.5, -50, 0.1, 0)
+ToggleButton.Size = UDim2.new(0, 100, 0, 40)
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.Text = "Aura: OFF"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 18.000
+
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = ToggleButton
+
+-- Logic Bật/Tắt
+_G.AuraEnabled = false
+
+ToggleButton.MouseButton1Click:Connect(function()
+    _G.AuraEnabled = not _G.AuraEnabled
+    
+    if _G.AuraEnabled then
+        -- Trạng thái BẬT
+        ToggleButton.Text = "Aura: ON"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 255, 50) -- Màu xanh
+        
+        -- Chạy script của bạn trong một luồng riêng (thread)
+        task.spawn(function()
+            while _G.AuraEnabled do
+                -- Gọi script từ link GitHub của bạn
+                pcall(function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/Huylovemy/Attack-/refs/heads/main/Aura"))()
+                end)
+                
+                -- Thời gian chờ để tránh bị đứng game (delay)
+                task.wait(1) 
             end
         end)
+    else
+        -- Trạng thái TẮT
+        ToggleButton.Text = "Aura: OFF"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        print("Đã tắt Aura")
     end
 end)
