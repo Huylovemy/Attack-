@@ -1,53 +1,32 @@
-local ScreenGui = Instance.new("ScreenGui")
-local ToggleButton = Instance.new("TextButton")
-local UICorner = Instance.new("UICorner")
-
--- Cấu hình Giao diện
-ScreenGui.Name = "AuraControlGui"
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-ToggleButton.Name = "ToggleButton"
-ToggleButton.Parent = ScreenGui
-ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50) -- Màu đỏ
-ToggleButton.Position = UDim2.new(0.5, -50, 0.15, 0)
-ToggleButton.Size = UDim2.new(0, 120, 0, 45)
-ToggleButton.Font = Enum.Font.GothamBold
-ToggleButton.Text = "Aura: OFF"
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.TextSize = 16.000
-
-UICorner.CornerRadius = UDim.new(0, 10)
-UICorner.Parent = ToggleButton
-
--- Biến lưu trữ luồng chạy script
-local scriptThread = nil 
-
-ToggleButton.MouseButton1Click:Connect(function()
-    if scriptThread == nil then
-        -- TRẠNG THÁI: BẬT
-        ToggleButton.Text = "Aura: ON"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 255, 50) -- Màu xanh
-        
-        -- Tạo một luồng riêng để chạy script
-        scriptThread = task.spawn(function()
-            local success, err = pcall(function()
-                loadstring(game:HttpGet("https://raw.githubusercontent.com/Huylovemy/Attack-/refs/heads/main/Aura"))()
+v490:AddToggle({
+    Name = "Auto Kill Player Trailer V4",
+    Description = "\196\144\195\161nh Ng\198\176\225\187\157i Ch\198\161i Trong Trial",
+    Default = false,
+    Callback = function(v1020)
+        _G.AutoKillV4 = v1020
+        StopTween(_G.AutoKillV4)
+    end
+})
+spawn(function()
+    while task.wait() do
+        if _G.AutoKillV4 then
+            pcall(function()
+                for _, v1022 in pairs(game.Workspace.Characters:GetChildren()) do
+                    if v1022.Name ~= game.Players.LocalPlayer.Name and v1022:FindFirstChild("Humanoid") and v1022:FindFirstChild("HumanoidRootPart") and v1022.Humanoid.Health > 0 and v1022.Parent and (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v1022.HumanoidRootPart.Position).Magnitude <= 230 then
+                        repeat
+                            task.wait()
+                            AutoHaki()
+                            EquipWeapon(_G.SelectWeapon)
+                            topos(v1022.HumanoidRootPart.CFrame * CFrame.new(1, 1, 2))
+                            v1022.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
+                            v1022.HumanoidRootPart.CanCollide = false
+                            v1022.Head.CanCollide = false
+                            v1022.Humanoid.WalkSpeed = 0
+                            sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
+                        until not _G.AutoKillV4 or v1022.Humanoid.Health <= 0 or not v1022.Parent or not v1022:FindFirstChild("HumanoidRootPart") or not v1022:FindFirstChild("Humanoid")
+                    end
+                end
             end)
-            if not success then
-                warn("Lỗi script: ", err)
-            end
-        end)
-    else
-        -- TRẠNG THÁI: TẮT
-        ToggleButton.Text = "Aura: OFF"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-        
-        -- Hủy luồng đang chạy script ngay lập tức
-        task.cancel(scriptThread)
-        scriptThread = nil
-        
-        -- (Tùy chọn) Xóa các hiệu ứng hoặc vật phẩm mà script tạo ra nếu có thể
-        print("Đã ép dừng Aura")
+        end
     end
 end)
